@@ -230,11 +230,11 @@ int main(int argc, char** argv)
     ConstructNode(&grid_node);
     Camera camera;
     ConstructCamera(&camera);
-    float fov = 45.f, near = 0.01, far = 1000.f;
+    float perspective_fov = 45.f, perspective_near = 0.01f, perspective_far = 1000.f;
     mat4x4 projection_matrix;
-    mat4x4_perspective(projection_matrix, fov,
+    mat4x4_perspective(projection_matrix, perspective_fov,
                        WINDOW_WIDTH/(float)WINDOW_HEIGHT,
-                       near, far);
+                       perspective_near, perspective_far);
 
     Uint32 ticks = SDL_GetTicks();
     State state = STATE_RUNNING;
@@ -286,8 +286,8 @@ int main(int argc, char** argv)
                     int w = event.window.data1;
                     int h = event.window.data2;
                     glViewport(0, 0, w, h);
-                    mat4x4_perspective(projection_matrix, fov, w/(float)h,
-                                       near, far);
+                    mat4x4_perspective(projection_matrix, perspective_fov,
+                                       w/(float)h, perspective_near, perspective_far);
                 }
                 break;
             case SDL_MOUSEMOTION:
