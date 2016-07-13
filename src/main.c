@@ -4,6 +4,7 @@
 #include "Shaders.h"
 #include "Node.h"
 #include "Camera.h"
+#include "Util.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -17,18 +18,6 @@ typedef enum
 
 static SDL_Window* window;
 static SDL_GLContext context;
-
-static void Message(const char* title, const char* msg)
-{
-    SDL_ShowSimpleMessageBox
-    (
-        SDL_MESSAGEBOX_INFORMATION |
-        SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-        title,
-        msg,
-        NULL
-    );
-}
 
 static int Init()
 {
