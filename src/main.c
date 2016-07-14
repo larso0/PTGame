@@ -1,8 +1,5 @@
 #include "PT.h"
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
-
 typedef enum
 {
     STATE_RUNNING = 1,
@@ -133,20 +130,21 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glViewport(0, 0, settings.video.width, settings.video.height);
 
     Node grid_node;
     ConstructNode(&grid_node);
     Camera camera;
     ConstructCamera(&camera);
-    float perspective_fov = 1.f, perspective_near = 0.01f, perspective_far = 1000.f;
     mat4x4 projection_matrix;
-    mat4x4_perspective(projection_matrix, perspective_fov,
-                       WINDOW_WIDTH/(float)WINDOW_HEIGHT,
-                       perspective_near, perspective_far);
+    mat4x4_perspective(projection_matrix,
+                       settings.video.pfov,
+                       settings.video.width/(float)settings.video.height,
+                       settings.video.pnear,
+                       settings.video.pfar);
 
     Uint32 ticks = SDL_GetTicks();
-    State state = STATE_RUNNING;
+    State state = STATE_RUNNING | (settings.video.fullscreen ? STATE_FULLSCREEN : 0);
     while(state & STATE_RUNNING)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -195,8 +193,11 @@ int main(int argc, char** argv)
                     int w = event.window.data1;
                     int h = event.window.data2;
                     glViewport(0, 0, w, h);
-                    mat4x4_perspective(projection_matrix, perspective_fov,
-                                       w/(float)h, perspective_near, perspective_far);
+                    mat4x4_perspective(projection_matrix,
+                                       settings.video.pfov,
+                                       w/(float)h,
+                                       settings.video.pnear,
+                                       settings.video.pfar);
                 }
                 break;
             case SDL_MOUSEMOTION:

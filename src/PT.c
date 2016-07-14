@@ -3,6 +3,7 @@
 
 SDL_Window* window;
 SDL_GLContext context;
+Settings settings;
 
 void Quit()
 {
@@ -13,6 +14,8 @@ void Quit()
 
 int Init()
 {
+    ConstructSettings(&settings);
+    LoadSettingsFile(&settings, "settings.ini");
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         Message("Error: Could not initialize SDL.", SDL_GetError());
@@ -34,8 +37,10 @@ int Init()
     (
         "PTGame",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        640, 480,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+        settings.video.width, settings.video.height,
+        SDL_WINDOW_OPENGL |
+        (settings.video.fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP :
+                                     SDL_WINDOW_RESIZABLE)
     );
     if(!window)
     {
