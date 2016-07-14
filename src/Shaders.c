@@ -1,6 +1,6 @@
 #include "Shaders.h"
-#include "Util.h"
 #include <stdlib.h>
+#include "PT.h"
 
 const char* GLSL_VERSION = "#version 140\n";
 const char* GLSL_HEIGHT_FUNCTION =

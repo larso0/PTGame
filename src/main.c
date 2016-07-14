@@ -1,10 +1,4 @@
-#include <SDL2/SDL.h>
-#include <glad/glad.h>
-#include <stdlib.h>
-#include "Shaders.h"
-#include "Node.h"
-#include "Camera.h"
-#include "Util.h"
+#include "PT.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -15,79 +9,6 @@ typedef enum
     STATE_FULLSCREEN = 1 << 1,
     STATE_MOUSE_GRABBED = 1 << 2
 } State;
-
-static SDL_Window* window;
-static SDL_GLContext context;
-
-static int Init()
-{
-    if(SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        Message("Error: Could not initialize SDL.", SDL_GetError());
-        return -1;
-    }
-
-    if(SDL_GL_LoadLibrary(NULL) < 0)
-    {
-        Message("Error: Could not load GL library.", SDL_GetError());
-        SDL_Quit();
-        return -2;
-    }
-
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
-    window = SDL_CreateWindow
-    (
-        "PTGame",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        640, 480,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
-    );
-    if(!window)
-    {
-        Message("Error: Could not create window.", SDL_GetError());
-        SDL_Quit();
-        return -3;
-    }
-
-    context = SDL_GL_CreateContext(window);
-    if(!context)
-    {
-        Message("Error: Could not create GL context.", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return -4;
-    }
-
-    if(SDL_GL_SetSwapInterval(-1) < 0)
-    {
-        if(SDL_GL_SetSwapInterval(1) < 0)
-        {
-            Message("Warning: VSync not supported.", SDL_GetError());
-        }
-    }
-
-    if(!gladLoadGLLoader(SDL_GL_GetProcAddress))
-    {
-        Message("Error: Could not load GL extensions.",
-                "Unable to load OpenGL extensions with glad loader.");
-        SDL_GL_DeleteContext(context);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return -5;
-    }
-
-    return 0;
-}
-
-static void Quit()
-{
-    SDL_GL_DeleteContext(context);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-}
 
 static int SetupProgram(GLuint* dst)
 {
@@ -184,7 +105,6 @@ static GLuint CreateGridIndexBuffer(int* count, int res)
 int main(int argc, char** argv)
 {
     if(Init() < 0) return 1;
-    atexit(Quit);
 
     GLuint program;
     if(SetupProgram(&program) < 0) return -1;
