@@ -139,7 +139,7 @@ int main(int argc, char** argv)
     ConstructNode(&grid_node);
     Camera camera;
     ConstructCamera(&camera);
-    float perspective_fov = 45.f, perspective_near = 0.01f, perspective_far = 1000.f;
+    float perspective_fov = 1.f, perspective_near = 0.01f, perspective_far = 1000.f;
     mat4x4 projection_matrix;
     mat4x4_perspective(projection_matrix, perspective_fov,
                        WINDOW_WIDTH/(float)WINDOW_HEIGHT,
