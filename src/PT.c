@@ -3,6 +3,7 @@
 
 SDL_Window* window;
 SDL_GLContext context;
+Settings settings;
 
 void Quit()
 {
@@ -24,6 +25,18 @@ int Init()
         Message("Error: Could not load GL library.", SDL_GetError());
         SDL_Quit();
         return -2;
+    }
+
+    ConstructSettings(&settings);
+    FILE* inifile = fopen("settings.ini", "r");
+    if(!inifile)
+    {
+        Message("Warning", "Unable to open \"settings.ini\". Default settings "
+                           "will be used.");
+    }
+    else
+    {
+        ParseSettings(&settings, inifile);
     }
 
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);

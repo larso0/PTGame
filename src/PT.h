@@ -7,9 +7,11 @@
 #include "Shaders.h"
 #include "Node.h"
 #include "Camera.h"
+#include "Settings.h"
 
 extern SDL_Window* window;
 extern SDL_GLContext context;
+extern Settings settings;
 
 int Init();
 
