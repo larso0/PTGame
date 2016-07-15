@@ -9,6 +9,10 @@ typedef struct
         int width, height;
         float pfov, pnear, pfar;
     } video;
+    struct
+    {
+        float viewdistance;
+    } graphics;
 } Settings;
 
 void ConstructSettings(Settings* settings);

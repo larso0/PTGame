@@ -29,12 +29,13 @@ static int SetupProgram(GLuint* dst)
     const char* fshader_src =
         "in float distance;\n"
         "out vec3 fcolor;\n"
-        "uniform vec3 color;"
+        "uniform vec3 color;\n"
+        "uniform float viewdistance;\n"
         "void main()\n"
         "{\n"
-        "    const float start = 64.f, end = 100.f;\n"
-        "    float fog = 1.0 - clamp((end - distance) /\n"
-        "                            (end - start),\n"
+        "    float start = viewdistance * 0.7f;\n"
+        "    float fog = 1.0 - clamp((viewdistance - distance) /\n"
+        "                            (viewdistance - start),\n"
         "                            0.0, 1.0);\n"
         "    fcolor = mix(color, vec3(0.5f, 0.5f, 0.5f), fog);\n"
         "}\n";
@@ -54,17 +55,19 @@ static int SetupProgram(GLuint* dst)
     return 0;
 }
 
-static GLuint CreateGridVertexBuffer(int res)
+static GLuint CreateGridVertexBuffer()
 {
-    size_t vs_size = res*res*2*sizeof(float);
+    int n = 2*(int)ceil(settings.graphics.viewdistance);
+    float co = -n/2.f; //Center offset
+    size_t vs_size = n*n*2*sizeof(float);
     float* vs = malloc(vs_size);
     int i, j, front = 0;
-    for(i = 0; i < res; i++)
+    for(i = 0; i < n; i++)
     {
-        for(j = 0; j < res; j++)
+        for(j = 0; j < n; j++)
         {
-            vs[front++] = i - 96.f;
-            vs[front++] = j - 96.f;
+            vs[front++] = i + co;
+            vs[front++] = j + co;
         }
     }
     GLuint buf;
@@ -75,20 +78,21 @@ static GLuint CreateGridVertexBuffer(int res)
     return buf;
 }
 
-static GLuint CreateGridIndexBuffer(int* count, int res)
+static GLuint CreateGridIndexBuffer(int* count)
 {
-    size_t is_size = (2*(res-1) + 2*(res-1)*res)*sizeof(GLushort);
-    GLushort* is = malloc(is_size);
+    int n = 2*(int)ceil(settings.graphics.viewdistance);
+    size_t is_size = (2*(n-1) + 2*(n-1)*n)*sizeof(GLuint);
+    GLuint* is = malloc(is_size);
     int i, j, front = 0;
-    for(i = 0; i < res-1; i++)
+    for(i = 0; i < n-1; i++)
     {
-        is[front++] = i*res;
-        for(j = 0; j < res; j++)
+        is[front++] = i*n;
+        for(j = 0; j < n; j++)
         {
-            is[front++] = i*res+j;
-            is[front++] = (i+1)*res+j;
+            is[front++] = i*n+j;
+            is[front++] = (i+1)*n+j;
         }
-        is[front++] = (i+1)*res+res-1;
+        is[front++] = (i+1)*n+n-1;
     }
     *count = front;
     GLuint buf;
@@ -106,9 +110,9 @@ int main(int argc, char** argv)
     GLuint program;
     if(SetupProgram(&program) < 0) return -1;
 
-    GLuint grid_vbuf = CreateGridVertexBuffer(192);
+    GLuint grid_vbuf = CreateGridVertexBuffer();
     int grid_icount;
-    GLuint grid_ibuf = CreateGridIndexBuffer(&grid_icount, 192);
+    GLuint grid_ibuf = CreateGridIndexBuffer(&grid_icount);
 
     glUseProgram(program);
     GLint grid_pos_loc = glGetAttribLocation(program, "grid_pos");
@@ -116,8 +120,10 @@ int main(int argc, char** argv)
     GLint grid_view_mat_loc = glGetUniformLocation(program, "view_mat");
     GLint grid_proj_mat_loc = glGetUniformLocation(program, "proj_mat");
     GLint grid_color_loc = glGetUniformLocation(program, "color");
+    GLint grid_viewdistance_loc = glGetUniformLocation(program, "viewdistance");
 
     glUniform3f(grid_color_loc, 0.f, 0.6f, 0.f);
+    glUniform1f(grid_viewdistance_loc, settings.graphics.viewdistance);
 
     GLuint grid_vao;
     glGenVertexArrays(1, &grid_vao);
@@ -156,7 +162,7 @@ int main(int argc, char** argv)
         glUniformMatrix4fv(grid_proj_mat_loc, 1, GL_FALSE,
                            (const float*)projection_matrix);
         glBindVertexArray(grid_vao);
-        glDrawElements(GL_TRIANGLE_STRIP, grid_icount, GL_UNSIGNED_SHORT, NULL);
+        glDrawElements(GL_TRIANGLE_STRIP, grid_icount, GL_UNSIGNED_INT, NULL);
         SDL_GL_SwapWindow(window);
 
         SDL_Event event;
@@ -266,8 +272,8 @@ int main(int argc, char** argv)
         vec2 tmp2; tmp2[0] = grid_node.position[0];
         tmp2[1] = grid_node.position[2];
         vec2_sub(tmp1, tmp1, tmp2);
-        tmp1[0] = floor(tmp1[0]/64.f)*64.f;
-        tmp1[1] = floor(tmp1[1]/64.f)*64.f;
+        tmp1[0] = floor(tmp1[0]);
+        tmp1[1] = floor(tmp1[1]);
         grid_node.translation[0] += tmp1[0];
         grid_node.translation[2] += tmp1[1];
         UpdateNode(&grid_node);
