@@ -60,7 +60,11 @@ static GLuint CreateGridVertexBuffer()
     int n = 2*(int)ceil(settings.graphics.viewdistance);
     float co = -n/2.f; //Center offset
     size_t vs_size = n*n*2*sizeof(float);
-    float* vs = malloc(vs_size);
+    GLuint buf;
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ARRAY_BUFFER, buf);
+    glBufferData(GL_ARRAY_BUFFER, vs_size, NULL, GL_STATIC_DRAW);
+    float* vs = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     int i, j, front = 0;
     for(i = 0; i < n; i++)
     {
@@ -70,11 +74,7 @@ static GLuint CreateGridVertexBuffer()
             vs[front++] = j + co;
         }
     }
-    GLuint buf;
-    glGenBuffers(1, &buf);
-    glBindBuffer(GL_ARRAY_BUFFER, buf);
-    glBufferData(GL_ARRAY_BUFFER, vs_size, vs, GL_STATIC_DRAW);
-    free(vs);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
     return buf;
 }
 
@@ -82,7 +82,11 @@ static GLuint CreateGridIndexBuffer(int* count)
 {
     int n = 2*(int)ceil(settings.graphics.viewdistance);
     size_t is_size = (2*(n-1) + 2*(n-1)*n)*sizeof(GLuint);
-    GLuint* is = malloc(is_size);
+    GLuint buf;
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ARRAY_BUFFER, buf);
+    glBufferData(GL_ARRAY_BUFFER, is_size, NULL, GL_STATIC_DRAW);
+    GLuint* is = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     int i, j, front = 0;
     for(i = 0; i < n-1; i++)
     {
@@ -95,11 +99,7 @@ static GLuint CreateGridIndexBuffer(int* count)
         is[front++] = (i+1)*n+n-1;
     }
     *count = front;
-    GLuint buf;
-    glGenBuffers(1, &buf);
-    glBindBuffer(GL_ARRAY_BUFFER, buf);
-    glBufferData(GL_ARRAY_BUFFER, is_size, is, GL_STATIC_DRAW);
-    free(is);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
     return buf;
 }
 
