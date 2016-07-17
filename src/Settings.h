@@ -13,6 +13,11 @@ typedef struct
     {
         float viewdistance;
     } graphics;
+    struct
+    {
+        float speed1, speed2;
+        float xsensitivity, ysensitivity;
+    } controls;
 } Settings;
 
 void ConstructSettings(Settings* settings);

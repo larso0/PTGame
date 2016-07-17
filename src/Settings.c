@@ -11,6 +11,42 @@ void ConstructSettings(Settings* settings)
     settings->video.pnear = 0.01f;
     settings->video.pfar = 1000.f;
     settings->graphics.viewdistance = 100.f;
+    settings->controls.speed1 = 10.f;
+    settings->controls.speed2 = 20.f;
+    settings->controls.xsensitivity = 0.01f;
+    settings->controls.ysensitivity = 0.01f;
+}
+
+int ParseInt(int* r, const char* str)
+{
+    int res;
+    if(sscanf(str, "%d", &res) != 1)
+    {
+        Message("Warning", "Error when parsing int. Falling back to default "
+                           "value.");
+        return -1;
+    }
+    else
+    {
+        *r = res;
+        return 0;
+    }
+}
+
+int ParseFloat(float* r, const char* str)
+{
+    float res;
+    if(sscanf(str, "%f", &res) != 1)
+    {
+        Message("Warning", "Error when parsing float. Falling back to default "
+                           "value.");
+        return -1;
+    }
+    else
+    {
+        *r = res;
+        return 0;
+    }
 }
 
 static void HandleVideoSetting(Settings* settings, const char* key,
@@ -29,88 +65,39 @@ static void HandleVideoSetting(Settings* settings, const char* key,
         }
     }
     else if(strcmp(key, "width") == 0)
-    {
-        int res;
-        if(sscanf(value, "%d", &res) != 1)
-        {
-            Message("Warning", "Error when parsing key \"width\"."
-                               "Falling back to default width of 640.");
-        }
-        else
-        {
-            settings->video.width = res;
-        }
-    }
+        ParseInt(&settings->video.width, value);
     else if(strcmp(key, "height") == 0)
-    {
-        int res;
-        if(sscanf(value, "%d", &res) != 1)
-        {
-            Message("Warning", "Error when parsing key \"height\"."
-                               "Falling back to default height of 480.");
-        }
-        else
-        {
-            settings->video.height = res;
-        }
-    }
+        ParseInt(&settings->video.height, value);
     else if(strcmp(key, "fov") == 0)
     {
         float res;
-        if(sscanf(value, "%f", &res) != 1)
-        {
-            Message("Warning", "Error when parsing key \"fov\". Falling "
-                               "back to default value of 1.0 radians.");
-        }
-        else
-        {
+        if(ParseFloat(&res, value) == 0)
             settings->video.pfov = res * 3.1415926535 / 180.f;
-        }
     }
     else if(strcmp(key, "near") == 0)
-    {
-        float res;
-        if(sscanf(value, "%f", &res) != 1)
-        {
-            Message("Warning", "Error when parsing key \"near\". Falling "
-                               "back to default value of 0.01.");
-        }
-        else
-        {
-            settings->video.pnear = res;
-        }
-    }
+        ParseFloat(&settings->video.pnear, value);
     else if(strcmp(key, "far") == 0)
-    {
-        float res;
-        if(sscanf(value, "%f", &res) != 1)
-        {
-            Message("Warning", "Error when parsing key \"far\". Falling "
-                               "back to default value 1000.0.");
-        }
-        else
-        {
-            settings->video.pfar = res;
-        }
-    }
+        ParseFloat(&settings->video.pfar, value);
 }
 
 static void HandleGraphicsSetting(Settings* settings, const char* key,
                                   const char* value)
 {
     if(strcmp(key, "viewdistance") == 0)
-    {
-        float res;
-        if(sscanf(value, "%f", &res) != 1)
-        {
-            Message("Warning", "Error when parsing key \"viewdistance\". Falling "
-                    "back to default value of 100.");
-        }
-        else
-        {
-            settings->graphics.viewdistance = res;
-        }
-    }
+        ParseFloat(&settings->graphics.viewdistance, value);
+}
+
+static void HandleControlsSetting(Settings* settings, const char* key,
+                                  const char* value)
+{
+    if(strcmp(key, "speed1") == 0)
+        ParseFloat(&settings->controls.speed1, value);
+    else if(strcmp(key, "speed2") == 0)
+        ParseFloat(&settings->controls.speed2, value);
+    else if(strcmp(key, "xsensitivity") == 0)
+        ParseFloat(&settings->controls.xsensitivity, value);
+    else if(strcmp(key, "ysensitivity") == 0)
+        ParseFloat(&settings->controls.ysensitivity, value);
 }
 
 static int IniHandler(void* data, const char* section, const char* key,
@@ -121,6 +108,8 @@ static int IniHandler(void* data, const char* section, const char* key,
         HandleVideoSetting(settings, key, value);
     else if(strcmp(section, "graphics") == 0)
         HandleGraphicsSetting(settings, key, value);
+    else if(strcmp(section, "controls") == 0)
+        HandleControlsSetting(settings, key, value);
     return 1;
 }
 

@@ -149,6 +149,7 @@ int main(int argc, char** argv)
                        settings.video.pnear,
                        settings.video.pfar);
 
+    float speed = 10.f;
     Uint32 ticks = SDL_GetTicks();
     State state = STATE_RUNNING | (settings.video.fullscreen ? STATE_FULLSCREEN : 0);
     while(state & STATE_RUNNING)
@@ -189,6 +190,19 @@ int main(int argc, char** argv)
                     state ^= STATE_MOUSE_GRABBED;
                     SDL_SetRelativeMouseMode(state & STATE_MOUSE_GRABBED);
                     break;
+                case SDL_SCANCODE_LSHIFT:
+                    speed = settings.controls.speed1;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.scancode)
+                {
+                case SDL_SCANCODE_LSHIFT:
+                    speed = settings.controls.speed2;
+                    break;
                 default:
                     break;
                 }
@@ -209,8 +223,10 @@ int main(int argc, char** argv)
             case SDL_MOUSEMOTION:
                 if(state & STATE_MOUSE_GRABBED)
                 {
-                    camera.yaw -= 0.01f*event.motion.xrel;
-                    camera.pitch -= 0.01f*event.motion.yrel;
+                    camera.yaw -= settings.controls.xsensitivity *
+                                  event.motion.xrel;
+                    camera.pitch -= settings.controls.xsensitivity *
+                                    event.motion.yrel;
                 }
                 break;
             default:
@@ -222,61 +238,66 @@ int main(int argc, char** argv)
         ticks = nticks;
 
         const Uint8* keys = SDL_GetKeyboardState(NULL);
-        vec3 translation;
-        if(keys[SDL_SCANCODE_W])
+        vec3 movement;
+        int i;
+        for(i = 0; i < 3; i++) movement[i] = 0.f;
+        SDL_bool moved = SDL_FALSE;
+        if(keys[SDL_SCANCODE_W] && !keys[SDL_SCANCODE_S])
         {
-            vec3_scale(translation, camera.direction, delta*10.f);
-            vec3_add(camera.node.translation,
-                     camera.node.translation,
-                     translation);
+            vec3_add(movement, movement, camera.direction);
+            moved = SDL_TRUE;
         }
-        if(keys[SDL_SCANCODE_S])
+        else if(keys[SDL_SCANCODE_S] && !keys[SDL_SCANCODE_W])
         {
-            vec3_scale(translation, camera.direction, -delta*10.f);
-            vec3_add(camera.node.translation,
-                     camera.node.translation,
-                     translation);
+            vec3_sub(movement, movement, camera.direction);
+            moved = SDL_TRUE;
         }
-        if(keys[SDL_SCANCODE_A])
+        if(keys[SDL_SCANCODE_A] && !keys[SDL_SCANCODE_D])
         {
-            vec3_scale(translation, camera.right, -delta*10.f);
-            vec3_add(camera.node.translation,
-                     camera.node.translation,
-                     translation);
+            vec3_sub(movement, movement, camera.right);
+            moved = SDL_TRUE;
         }
-        if(keys[SDL_SCANCODE_D])
+        else if(keys[SDL_SCANCODE_D] && !keys[SDL_SCANCODE_A])
         {
-            vec3_scale(translation, camera.right, delta*10.f);
-            vec3_add(camera.node.translation,
-                     camera.node.translation,
-                     translation);
+            vec3_add(movement, movement, camera.right);
+            moved = SDL_TRUE;
         }
-        if(keys[SDL_SCANCODE_Q])
+        if(keys[SDL_SCANCODE_Q] && !keys[SDL_SCANCODE_E])
         {
-            vec3_scale(translation, camera.up, -delta*10.f);
-            vec3_add(camera.node.translation,
-                     camera.node.translation,
-                     translation);
+            vec3_sub(movement, movement, camera.up);
+            moved = SDL_TRUE;
         }
-        if(keys[SDL_SCANCODE_E])
+        else if(keys[SDL_SCANCODE_E] && !keys[SDL_SCANCODE_Q])
         {
-            vec3_scale(translation, camera.up, delta*10.f);
-            vec3_add(camera.node.translation,
-                     camera.node.translation,
-                     translation);
+            vec3_add(movement, movement, camera.up);
+            moved = SDL_TRUE;
         }
+
+        if(moved)
+        {
+            vec3_norm(movement, movement);
+            vec3_scale(movement, movement, delta * speed);
+            vec3_add(camera.node.translation, camera.node.translation,
+                     movement);
+        }
+
         UpdateCamera(&camera);
 
-        vec2 tmp1; tmp1[0] = camera.node.position[0];
-        tmp1[1] = camera.node.position[2];
-        vec2 tmp2; tmp2[0] = grid_node.position[0];
-        tmp2[1] = grid_node.position[2];
-        vec2_sub(tmp1, tmp1, tmp2);
-        tmp1[0] = floor(tmp1[0]);
-        tmp1[1] = floor(tmp1[1]);
-        grid_node.translation[0] += tmp1[0];
-        grid_node.translation[2] += tmp1[1];
-        UpdateNode(&grid_node);
+        if(moved)
+        {
+            vec2 tmp1;
+            tmp1[0] = camera.node.position[0];
+            tmp1[1] = camera.node.position[2];
+            vec2 tmp2;
+            tmp2[0] = grid_node.position[0];
+            tmp2[1] = grid_node.position[2];
+            vec2_sub(tmp1, tmp1, tmp2);
+            tmp1[0] = floor(tmp1[0]);
+            tmp1[1] = floor(tmp1[1]);
+            grid_node.translation[0] += tmp1[0];
+            grid_node.translation[2] += tmp1[1];
+            UpdateNode(&grid_node);
+        }
     }
 
     return 0;
