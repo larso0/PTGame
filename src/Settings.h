@@ -7,6 +7,7 @@ typedef struct
     {
         char fullscreen;
         int width, height;
+        char vsync;
         float pfov, pnear, pfar;
     } video;
     struct

@@ -58,12 +58,11 @@ int Init()
         return -4;
     }
 
-    if(SDL_GL_SetSwapInterval(-1) < 0)
+    if(settings.video.vsync &&
+       SDL_GL_SetSwapInterval(-1) < 0 &&
+       SDL_GL_SetSwapInterval(1) < 0)
     {
-        if(SDL_GL_SetSwapInterval(1) < 0)
-        {
-            Message("Warning: VSync not supported.", SDL_GetError());
-        }
+        Message("Warning: VSync not supported.", SDL_GetError());
     }
 
     if(!gladLoadGLLoader(SDL_GL_GetProcAddress))

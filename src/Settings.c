@@ -7,6 +7,7 @@ void ConstructSettings(Settings* settings)
     settings->video.fullscreen = 0;
     settings->video.width = 640;
     settings->video.height = 480;
+    settings->video.vsync = 1;
     settings->video.pfov = 1.f;
     settings->video.pnear = 0.01f;
     settings->video.pfar = 1000.f;
@@ -54,8 +55,8 @@ static void HandleVideoSetting(Settings* settings, const char* key,
 {
     if(strcmp(key, "fullscreen") == 0)
     {
-        if(*value == '0') settings->video.fullscreen = 0;
-        else if(*value == '1') settings->video.fullscreen = 1;
+        if(strcmp(value, "0") == 0) settings->video.fullscreen = 0;
+        else if(strcmp(value, "1") == 0) settings->video.fullscreen = 1;
         else
         {
             Message("Warning",
@@ -68,6 +69,18 @@ static void HandleVideoSetting(Settings* settings, const char* key,
         ParseInt(&settings->video.width, value);
     else if(strcmp(key, "height") == 0)
         ParseInt(&settings->video.height, value);
+    else if(strcmp(key, "vsync") == 0)
+    {
+        if(strcmp(value, "0") == 0) settings->video.vsync = 0;
+        else if(strcmp(value, "1") == 0) settings->video.vsync = 1;
+        else
+        {
+            Message("Warning",
+                    "Invalid value of for key \"vsync\". Valid values"
+                    "are 0 for enabled, or 1 for disabled. "
+                    "Falling back to default value of 1.");
+        }
+    }
     else if(strcmp(key, "fov") == 0)
     {
         float res;

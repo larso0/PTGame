@@ -148,6 +148,8 @@ int main(int argc, char** argv)
                        settings.video.width/(float)settings.video.height,
                        settings.video.pnear,
                        settings.video.pfar);
+    glUniformMatrix4fv(grid_proj_mat_loc, 1, GL_FALSE,
+                       (const float*)projection_matrix);
 
     float speed = 10.f;
     Uint32 ticks = SDL_GetTicks();
@@ -160,8 +162,6 @@ int main(int argc, char** argv)
                            (const float*)grid_node.world_matrix);
         glUniformMatrix4fv(grid_view_mat_loc, 1, GL_FALSE,
                            (const float*)camera.view_matrix);
-        glUniformMatrix4fv(grid_proj_mat_loc, 1, GL_FALSE,
-                           (const float*)projection_matrix);
         glBindVertexArray(grid_vao);
         glDrawElements(GL_TRIANGLE_STRIP, grid_icount, GL_UNSIGNED_INT, NULL);
         SDL_GL_SwapWindow(window);
@@ -218,6 +218,8 @@ int main(int argc, char** argv)
                                        w/(float)h,
                                        settings.video.pnear,
                                        settings.video.pfar);
+                    glUniformMatrix4fv(grid_proj_mat_loc, 1, GL_FALSE,
+                                       (const float*)projection_matrix);
                 }
                 break;
             case SDL_MOUSEMOTION:
