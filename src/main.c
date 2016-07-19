@@ -1,4 +1,5 @@
 #include "PT.h"
+#include <stdio.h>
 
 typedef enum
 {
@@ -6,6 +7,7 @@ typedef enum
     STATE_FULLSCREEN = 1 << 1,
     STATE_MOUSE_GRABBED = 1 << 2
 } State;
+
 
 static int SetupProgram(GLuint* dst)
 {
@@ -55,9 +57,9 @@ static int SetupProgram(GLuint* dst)
     return 0;
 }
 
-static GLuint CreateGridVertexBuffer()
+static GLuint CreateGridVertexBuffer(float vd)
 {
-    int n = 2*(int)ceil(settings.graphics.viewdistance);
+    int n = 2*(int)ceil(vd);
     float co = -n/2.f; //Center offset
     size_t vs_size = n*n*2*sizeof(float);
     GLuint buf;
@@ -78,9 +80,9 @@ static GLuint CreateGridVertexBuffer()
     return buf;
 }
 
-static GLuint CreateGridIndexBuffer(int* count)
+static GLuint CreateGridIndexBuffer(int* count, float vd)
 {
-    int n = 2*(int)ceil(settings.graphics.viewdistance);
+    int n = 2*(int)ceil(vd);
     size_t is_size = (2*(n-1) + 2*(n-1)*n)*sizeof(GLuint);
     GLuint buf;
     glGenBuffers(1, &buf);
@@ -105,14 +107,18 @@ static GLuint CreateGridIndexBuffer(int* count)
 
 int main(int argc, char** argv)
 {
-    if(Init() < 0) return 1;
+    Settings settings;
+    ConstructSettings(&settings);
+    LoadSettingsFile(&settings, "settings.ini");
+    if(Init(&settings) < 0) return -1;
 
     GLuint program;
-    if(SetupProgram(&program) < 0) return -1;
+    if(SetupProgram(&program) < 0) return -2;
 
-    GLuint grid_vbuf = CreateGridVertexBuffer();
+    GLuint grid_vbuf = CreateGridVertexBuffer(settings.graphics.viewdistance);
     int grid_icount;
-    GLuint grid_ibuf = CreateGridIndexBuffer(&grid_icount);
+    GLuint grid_ibuf = CreateGridIndexBuffer(&grid_icount,
+                                             settings.graphics.viewdistance);
 
     glUseProgram(program);
     GLint grid_pos_loc = glGetAttribLocation(program, "grid_pos");
@@ -301,6 +307,11 @@ int main(int argc, char** argv)
             UpdateNode(&grid_node);
         }
     }
+
+    glDeleteVertexArrays(1, &grid_vao);
+    glDeleteBuffers(1, &grid_vbuf);
+    glDeleteBuffers(1, &grid_ibuf);
+    glDeleteProgram(program);
 
     return 0;
 }

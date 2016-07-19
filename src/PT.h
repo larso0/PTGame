@@ -8,12 +8,12 @@
 #include "Node.h"
 #include "Camera.h"
 #include "Settings.h"
+#include "Util.h"
 
 extern SDL_Window* window;
 extern SDL_GLContext context;
-extern Settings settings;
 
-int Init();
+int Init(Settings* settings);
 
 void Message(const char* title, const char* msg);
 
