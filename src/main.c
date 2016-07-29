@@ -13,44 +13,13 @@ static int SetupProgram(GLuint* dst)
 {
     GLuint program;
     GLuint shaders[3];
-    const char* vshader_src =
-        "#version 140\n"
-        "float Height(vec2 pos);\n"
-        "in vec2 grid_pos;\n"
-        "out float distance;\n"
-        "uniform mat4 world_mat;\n"
-        "uniform mat4 view_mat;\n"
-        "uniform mat4 proj_mat;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 pos = world_mat * vec4(grid_pos.x, 0.f,\n"
-        "                                grid_pos.y, 1.f);\n"
-        "    pos.y = Height(pos.xz);\n"
-        "    pos = view_mat * pos;\n"
-        "    distance = length(pos.xyz);\n"
-        "    gl_Position = proj_mat * pos;\n"
-        "}\n";
-    const char* fshader_src =
-        "#version 140\n"
-        "in float distance;\n"
-        "out vec3 fcolor;\n"
-        "uniform vec3 color;\n"
-        "uniform float viewdistance;\n"
-        "void main()\n"
-        "{\n"
-        "    float start = viewdistance * 0.7f;\n"
-        "    float fog = 1.0 - clamp((viewdistance - distance) /\n"
-        "                            (viewdistance - start),\n"
-        "                            0.0, 1.0);\n"
-        "    fcolor = mix(color, vec3(0.5f, 0.5f, 0.5f), fog);\n"
-        "}\n";
     if(LoadShader(shaders, GL_VERTEX_SHADER, "Noise.glsl") < 0) return -1;
-    if(CreateShader(shaders + 1, GL_VERTEX_SHADER, 1, &vshader_src) < 0)
+    if(LoadShader(shaders + 1, GL_VERTEX_SHADER, "TerrainVertex.glsl") < 0)
     {
         glDeleteShader(shaders[0]);
         return -2;
     }
-    if(CreateShader(shaders + 2, GL_FRAGMENT_SHADER, 1, &fshader_src) < 0)
+    if(LoadShader(shaders + 2, GL_FRAGMENT_SHADER, "Fragment.glsl") < 0)
     {
         glDeleteShader(shaders[0]);
         glDeleteShader(shaders[1]);
