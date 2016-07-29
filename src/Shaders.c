@@ -1,13 +1,11 @@
 #include "Shaders.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include "PT.h"
 
-const char* GLSL_VERSION = "#version 140\n";
 const char* GLSL_HEIGHT_FUNCTION =
-    "// Simplex 2D noise\n"
-    "//\n"
+    "#version 140\n"
     "vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }\n"
-    "\n"
     "float snoise(vec2 v)"
     "{\n"
     "    const vec4 C = vec4(0.211324865405187, 0.366025403784439,\n"
@@ -77,6 +75,33 @@ int CreateShader(GLuint* dst, GLenum type, GLsizei count, const char** source)
     }
     *dst = handle;
     return 0;
+}
+
+int LoadShader(GLuint* dst, GLenum type, const char* file)
+{
+    FILE* f = fopen(file, "r");
+    if(!f)
+    {
+        Message("Error", "Could not open file.");
+        return -1;
+    }
+    fseek(f, 0, SEEK_END);
+    long len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char* src = malloc(len + 1);
+    if(!src)
+    {
+        fclose(f);
+        Message("Error", "Memory allocation error.");
+        return -2;
+    }
+    fread(src, 1, len, f);
+    fclose(f);
+    src[len] = 0;
+    int r = CreateShader(dst, type, 1, (const char**)&src);
+    free(src);
+    if(r < 0) return -3;
+    else return 0;
 }
 
 int CreateProgram(GLuint* dst, GLsizei count, GLuint* shaders)

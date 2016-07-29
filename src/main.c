@@ -12,8 +12,10 @@ typedef enum
 static int SetupProgram(GLuint* dst)
 {
     GLuint program;
-    GLuint shaders[2];
+    GLuint shaders[3];
     const char* vshader_src =
+        "#version 140\n"
+        "float Height(vec2 pos);\n"
         "in vec2 grid_pos;\n"
         "out float distance;\n"
         "uniform mat4 world_mat;\n"
@@ -29,6 +31,7 @@ static int SetupProgram(GLuint* dst)
         "    gl_Position = proj_mat * pos;\n"
         "}\n";
     const char* fshader_src =
+        "#version 140\n"
         "in float distance;\n"
         "out vec3 fcolor;\n"
         "uniform vec3 color;\n"
@@ -41,17 +44,22 @@ static int SetupProgram(GLuint* dst)
         "                            0.0, 1.0);\n"
         "    fcolor = mix(color, vec3(0.5f, 0.5f, 0.5f), fog);\n"
         "}\n";
-    const char* strings[3];
-    strings[0] = GLSL_VERSION;
-    strings[1] = GLSL_HEIGHT_FUNCTION;
-    strings[2] = vshader_src;
-    if(CreateShader(shaders, GL_VERTEX_SHADER, 3, strings) < 0) return -1;
-    strings[1] = fshader_src;
-    if(CreateShader(shaders + 1, GL_FRAGMENT_SHADER, 2, strings) < 0)
+    if(LoadShader(shaders, GL_VERTEX_SHADER, "Noise.glsl") < 0) return -1;
+    if(CreateShader(shaders + 1, GL_VERTEX_SHADER, 1, &vshader_src) < 0)
+    {
+        glDeleteShader(shaders[0]);
         return -2;
-    int err = CreateProgram(&program, 2, shaders);
+    }
+    if(CreateShader(shaders + 2, GL_FRAGMENT_SHADER, 1, &fshader_src) < 0)
+    {
+        glDeleteShader(shaders[0]);
+        glDeleteShader(shaders[1]);
+        return -3;
+    }
+    int err = CreateProgram(&program, 3, shaders);
     glDeleteShader(shaders[0]);
     glDeleteShader(shaders[1]);
+    glDeleteShader(shaders[2]);
     if(err < 0) return -3;
     *dst = program;
     return 0;
